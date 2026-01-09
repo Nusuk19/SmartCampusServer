@@ -1,12 +1,33 @@
 package com.smartcampus.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
- * DTOs для Request/Response
+ * ✅ ОНОВЛЕНО: Request для реєстрації з роллю
  */
 public class RegisterRequest {
+
+    @JsonProperty("email")
     private String email;
+
+    @JsonProperty("password")
     private String password;
+
+    @JsonProperty("name")
     private String name;
+
+    @JsonProperty("role")
+    private String role;  // ✅ НОВИЙ: STUDENT або PROFESSOR
+
+    // Constructors
+    public RegisterRequest() {}
+
+    public RegisterRequest(String email, String password, String name, String role) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.role = role;
+    }
 
     // Getters and Setters
     public String getEmail() { return email; }
@@ -17,4 +38,7 @@ public class RegisterRequest {
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }

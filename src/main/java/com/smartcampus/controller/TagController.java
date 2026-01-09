@@ -9,9 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 🆕 Controller для управління NFC тегами
+ * ✅ ВИПРАВЛЕНО: Controller з використанням TagResponse DTO
  */
 @RestController
 @RequestMapping("/api/tags")
@@ -23,18 +24,28 @@ public class TagController {
 
     /**
      * GET /api/tags/my - Отримати мої теги
+     * ✅ ВИПРАВЛЕНО: Повертає List<TagResponse> замість List<NfcTag>
      */
     @GetMapping("/my")
-    public ResponseEntity<List<NfcTag>> getMyTags(@AuthenticationPrincipal CurrentUser currentUser) {
+    public ResponseEntity<List<TagResponse>> getMyTags(
+            @AuthenticationPrincipal CurrentUser currentUser) {
+
         List<NfcTag> tags = tagService.getUserTags(currentUser.getId());
-        return ResponseEntity.ok(tags);
+
+        // Конвертуємо Entity → DTO
+        List<TagResponse> response = tags.stream()
+                .map(TagResponse::fromEntity)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
     }
 
     /**
      * POST /api/tags/virtual - Створити віртуальний тег
+     * ✅ ВИПРАВЛЕНО: Повертає TagResponse
      */
     @PostMapping("/virtual")
-    public ResponseEntity<NfcTag> createVirtualTag(
+    public ResponseEntity<TagResponse> createVirtualTag(
             @AuthenticationPrincipal CurrentUser currentUser,
             @RequestBody CreateVirtualTagRequest request) {
         try {
@@ -43,7 +54,11 @@ public class TagController {
                     request.getTagUid(),
                     request.getName()
             );
-            return ResponseEntity.ok(tag);
+
+            // Конвертуємо Entity → DTO
+            TagResponse response = TagResponse.fromEntity(tag);
+
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -66,15 +81,20 @@ public class TagController {
 
     /**
      * PATCH /api/tags/{id} - Перейменувати тег
+     * ✅ ВИПРАВЛЕНО: Повертає TagResponse
      */
     @PatchMapping("/{id}")
-    public ResponseEntity<NfcTag> renameTag(
+    public ResponseEntity<TagResponse> renameTag(
             @AuthenticationPrincipal CurrentUser currentUser,
             @PathVariable Long id,
             @RequestBody RenameTagRequest request) {
         try {
             NfcTag tag = tagService.renameTag(id, currentUser.getId(), request.getName());
-            return ResponseEntity.ok(tag);
+
+            // Конвертуємо Entity → DTO
+            TagResponse response = TagResponse.fromEntity(tag);
+
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }

@@ -7,11 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 🆕 Controller для автентифікації
+ * ✅ ОНОВЛЕНО: Controller для автентифікації з підтримкою ролі
  */
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")  // Для тестування (в продакшені обмежити)
+@CrossOrigin(origins = "*")
 public class AuthController {
 
     @Autowired
@@ -19,14 +19,27 @@ public class AuthController {
 
     /**
      * POST /api/auth/register - Реєстрація
+     * ✅ ВИПРАВЛЕНО: Тепер приймає роль
      */
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         try {
+            // Валідація ролі (на випадок якщо клієнт не передав)
+            String role = request.getRole();
+            if (role == null || role.isEmpty()) {
+                role = "STUDENT";  // За замовчуванням
+            }
+
+            // Перевірка валідності ролі
+            if (!"STUDENT".equals(role) && !"PROFESSOR".equals(role)) {
+                return ResponseEntity.badRequest().build();
+            }
+
             AuthResponse response = authService.register(
                     request.getEmail(),
                     request.getPassword(),
-                    request.getName()
+                    request.getName(),
+                    role  // ✅ Передаємо роль
             );
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
@@ -46,7 +59,7 @@ public class AuthController {
             );
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(401).build();  // Unauthorized
+            return ResponseEntity.status(401).build();
         }
     }
 
@@ -77,12 +90,10 @@ public class AuthController {
     }
 
     /**
-     * POST /api/auth/logout - Вийти (опціонально)
+     * POST /api/auth/logout - Вийти
      */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
-        // У JWT немає серверного стану, тому просто повертаємо OK
-        // Клієнт сам видалить токен
         return ResponseEntity.ok().build();
     }
 }

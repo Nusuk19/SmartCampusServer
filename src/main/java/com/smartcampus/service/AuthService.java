@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
- * 🆕 Сервіс автентифікації
+ * ✅ ОНОВЛЕНО: Сервіс автентифікації з підтримкою ролі
  */
 @Service
 public class AuthService {
@@ -27,18 +27,23 @@ public class AuthService {
     private GoogleOAuthService googleOAuthService;
 
     /**
-     * Реєстрація нового користувача
+     * ✅ ОНОВЛЕНО: Реєстрація нового користувача з роллю
      */
-    public AuthResponse register(String email, String password, String name) {
+    public AuthResponse register(String email, String password, String name, String role) {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("Email вже зареєстрований");
+        }
+
+        // Валідація ролі
+        if (!"STUDENT".equals(role) && !"PROFESSOR".equals(role)) {
+            role = "STUDENT";  // За замовчуванням
         }
 
         User user = new User();
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setName(name);
-        user.setRole("STUDENT");
+        user.setRole(role);  // ✅ ВСТАНОВЛЮЄМО РОЛЬ
         user.setActive(true);
 
         user = userRepository.save(user);
@@ -90,7 +95,7 @@ public class AuthService {
                     newUser.setName(googleUser.getName());
                     newUser.setGoogleId(googleUser.getGoogleId());
                     newUser.setPhotoUrl(googleUser.getPhotoUrl());
-                    newUser.setRole("STUDENT");
+                    newUser.setRole("STUDENT");  // За замовчуванням для Google SSO
                     newUser.setActive(true);
                     return userRepository.save(newUser);
                 });
